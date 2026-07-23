@@ -1,21 +1,31 @@
 'use client';
 
 import { useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { deleteTransaction } from '@/actions/transactions';
 
-export function DeleteTxButton({ id }: { id: string }) {
-  const router = useRouter();
+export function DeleteTxButton({
+  id,
+  onOptimisticRemove,
+  onFailure,
+}: {
+  id: string;
+  onOptimisticRemove: () => void;
+  onFailure: () => void;
+}) {
   const [isPending, startTransition] = useTransition();
 
   function onClick() {
     if (!confirm('Delete this transaction?')) return;
+    onOptimisticRemove();
     startTransition(async () => {
       const result = await deleteTransaction(id);
-      if (!result.ok) { toast.error(result.message); return; }
+      if (!result.ok) {
+        onFailure();
+        toast.error(result.message);
+        return;
+      }
       toast.success(result.message);
-      router.refresh();
     });
   }
 

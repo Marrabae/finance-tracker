@@ -9,7 +9,7 @@ import { formatThousands, parseDigits } from '@/lib/format';
 
 interface AccountRow { id: string; name: string; starting_balance: number }
 
-function Row({ account }: { account: AccountRow }) {
+function Row({ account, onRemove }: { account: AccountRow; onRemove: (id: string) => Promise<boolean> }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [name, setName] = useState(account.name);
@@ -35,9 +35,7 @@ function Row({ account }: { account: AccountRow }) {
 
   function remove() {
     startTransition(async () => {
-      const result = await deleteAccount(account.id);
-      if (!result.ok) { toast.error(result.message); return; }
-      router.refresh();
+      await onRemove(account.id);
     });
   }
 
@@ -74,6 +72,21 @@ export function AccountManager({ accounts }: { accounts: AccountRow[] }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [newAcc, setNewAcc] = useState('');
+  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+
+  const visible = accounts.filter((a) => !removedIds.has(a.id));
+
+  async function remove(id: string) {
+    setRemovedIds((prev) => new Set(prev).add(id));
+    const result = await deleteAccount(id);
+    if (!result.ok) {
+      toast.error(result.message);
+      setRemovedIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
+      return false;
+    }
+    router.refresh();
+    return true;
+  }
 
   function submit() {
     const name = newAcc.trim();
@@ -95,7 +108,7 @@ export function AccountManager({ accounts }: { accounts: AccountRow[] }) {
         <span className="w-[150px]">Starting balance</span>
         <span className="w-[26px]" />
       </div>
-      {accounts.map((a) => <Row key={a.id} account={a} />)}
+      {visible.map((a) => <Row key={a.id} account={a} onRemove={remove} />)}
       <div className="flex gap-2">
         <input
           placeholder="New account (e.g. Jenius)"

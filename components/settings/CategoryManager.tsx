@@ -28,6 +28,9 @@ function CategoryGroup({ label, kind, categories }: { label: string; kind: Categ
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [value, setValue] = useState('');
+  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+
+  const visible = categories.filter((c) => !removedIds.has(c.id));
 
   function submit() {
     const name = value.trim();
@@ -42,9 +45,14 @@ function CategoryGroup({ label, kind, categories }: { label: string; kind: Categ
   }
 
   function remove(id: string) {
+    setRemovedIds((prev) => new Set(prev).add(id));
     startTransition(async () => {
       const result = await removeCategory(id);
-      if (!result.ok) { toast.error(result.message); return; }
+      if (!result.ok) {
+        toast.error(result.message);
+        setRemovedIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
+        return;
+      }
       router.refresh();
     });
   }
@@ -53,7 +61,7 @@ function CategoryGroup({ label, kind, categories }: { label: string; kind: Categ
     <div className="flex flex-col gap-2">
       <div className="text-xs font-semibold text-[#6b7671]">{label}</div>
       <div className="flex flex-wrap gap-1.5">
-        {categories.map((c) => <Tag key={c.id} name={c.name} onRemove={() => remove(c.id)} />)}
+        {visible.map((c) => <Tag key={c.id} name={c.name} onRemove={() => remove(c.id)} />)}
       </div>
       <div className="flex gap-2">
         <input

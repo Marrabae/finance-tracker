@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthedUser } from '@/lib/supabase/server';
 import { CategoryManager } from '@/components/settings/CategoryManager';
 import { AccountManager } from '@/components/settings/AccountManager';
 import { BudgetTargetsForm } from '@/components/settings/BudgetTargetsForm';
@@ -8,7 +8,7 @@ import type { Account, Budget, Category, FundSettings } from '@/lib/types';
 
 export default async function SettingsPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthedUser();
   const userId = user!.id;
 
   const [catRes, accRes, budgetRes, fundRes] = await Promise.all([

@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import { formatDateLabel } from '@/lib/format';
 import { DeleteTxButton } from './DeleteTxButton';
@@ -16,13 +19,30 @@ export interface HistoryGroup {
 }
 
 export function TransactionGroupList({ groups }: { groups: HistoryGroup[] }) {
-  if (groups.length === 0) {
+  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+
+  function markRemoved(id: string) {
+    setRemovedIds((prev) => new Set(prev).add(id));
+  }
+  function unmarkRemoved(id: string) {
+    setRemovedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }
+
+  const visibleGroups = groups
+    .map((g) => ({ ...g, items: g.items.filter((it) => !removedIds.has(it.id)) }))
+    .filter((g) => g.items.length > 0);
+
+  if (visibleGroups.length === 0) {
     return <div className="text-center text-[#6b7671] text-[13px] py-8">No transactions match these filters.</div>;
   }
 
   return (
     <>
-      {groups.map((g) => (
+      {visibleGroups.map((g) => (
         <div key={g.date} className="flex flex-col gap-1.5">
           <div className="text-[11.5px] font-semibold text-[#6b7671] tracking-wide uppercase px-1 pt-1">
             {formatDateLabel(g.date)}
@@ -44,7 +64,11 @@ export function TransactionGroupList({ groups }: { groups: HistoryGroup[] }) {
                   >
                     Edit
                   </Link>
-                  <DeleteTxButton id={it.id} />
+                  <DeleteTxButton
+                    id={it.id}
+                    onOptimisticRemove={() => markRemoved(it.id)}
+                    onFailure={() => unmarkRemoved(it.id)}
+                  />
                 </div>
               </div>
             ))}

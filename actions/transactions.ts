@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, authedUserId } from '@/lib/supabase/server';
 import type { ActionResult, TransactionType } from '@/lib/types';
 
 export interface TransactionInput {
@@ -35,12 +35,12 @@ export async function createTransaction(input: TransactionInput): Promise<Action
   if (err) return { ok: false, message: err };
 
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ok: false, message: 'Not signed in' };
+  const userId = await authedUserId(supabase);
+  if (!userId) return { ok: false, message: 'Not signed in' };
 
   const isTrf = input.tipe === 'transfer';
   const { error } = await supabase.from('transactions').insert({
-    user_id: user.id,
+    user_id: userId,
     tanggal: input.tanggal,
     tipe: input.tipe,
     category_id: isTrf ? null : input.categoryId,
@@ -62,8 +62,8 @@ export async function updateTransaction(id: string, input: TransactionInput): Pr
   if (err) return { ok: false, message: err };
 
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ok: false, message: 'Not signed in' };
+  const userId = await authedUserId(supabase);
+  if (!userId) return { ok: false, message: 'Not signed in' };
 
   const isTrf = input.tipe === 'transfer';
   const { error } = await supabase
@@ -78,7 +78,7 @@ export async function updateTransaction(id: string, input: TransactionInput): Pr
       catatan: input.catatan || null,
     })
     .eq('id', id)
-    .eq('user_id', user.id);
+    .eq('user_id', userId);
 
   if (error) return { ok: false, message: error.message };
 
@@ -88,10 +88,10 @@ export async function updateTransaction(id: string, input: TransactionInput): Pr
 
 export async function deleteTransaction(id: string): Promise<ActionResult> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ok: false, message: 'Not signed in' };
+  const userId = await authedUserId(supabase);
+  if (!userId) return { ok: false, message: 'Not signed in' };
 
-  const { error } = await supabase.from('transactions').delete().eq('id', id).eq('user_id', user.id);
+  const { error } = await supabase.from('transactions').delete().eq('id', id).eq('user_id', userId);
   if (error) return { ok: false, message: error.message };
 
   revalidateAll();

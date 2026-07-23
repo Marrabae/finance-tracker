@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthedUser } from '@/lib/supabase/server';
 import { TransactionForm, type EditingTransaction } from '@/components/input/TransactionForm';
 import type { Category, Transaction } from '@/lib/types';
 
@@ -9,7 +9,7 @@ export default async function InputPage({
 }) {
   const sp = await searchParams;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthedUser();
   const userId = user!.id;
 
   const [accRes, catRes, editRes] = await Promise.all([

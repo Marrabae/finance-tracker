@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthedUser } from '@/lib/supabase/server';
 import { fmtRupiah } from '@/lib/format';
 import { HistoryFilters } from '@/components/history/HistoryFilters';
 import { TransactionGroupList, type HistoryGroup } from '@/components/history/TransactionGroupList';
@@ -11,7 +11,7 @@ export default async function HistoryPage({
 }) {
   const sp = await searchParams;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthedUser();
   const userId = user!.id;
 
   let query = supabase.from('transactions').select('*').eq('user_id', userId).order('tanggal', { ascending: false });

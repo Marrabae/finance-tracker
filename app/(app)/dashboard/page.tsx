@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthedUser } from '@/lib/supabase/server';
 import { getMonthRange, monthTotals, budgetProgress } from '@/lib/derive';
 import { MonthSwitcher } from '@/components/dashboard/MonthSwitcher';
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
@@ -17,7 +17,7 @@ export default async function DashboardPage({
   const month0 = sp.month ? Number(sp.month) : now.getMonth();
 
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthedUser();
   const userId = user!.id;
   const { start, end } = getMonthRange(year, month0);
 

@@ -84,7 +84,6 @@ export function TransactionForm({
         router.push('/history');
       } else {
         resetForm();
-        router.refresh();
       }
     });
   }

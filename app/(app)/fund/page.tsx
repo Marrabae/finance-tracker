@@ -1,11 +1,11 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthedUser } from '@/lib/supabase/server';
 import { fundProjection } from '@/lib/derive';
 import { FundProgress } from '@/components/fund/FundProgress';
 import type { FundBalance } from '@/lib/types';
 
 export default async function FundPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getAuthedUser();
   const userId = user!.id;
 
   const { data } = await supabase.from('fund_balances').select('*').eq('user_id', userId).maybeSingle();
