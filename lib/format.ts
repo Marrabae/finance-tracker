@@ -23,6 +23,15 @@ export function todayISODate(): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+/**
+ * Today in Asia/Jakarta as YYYY-MM-DD. Server-side code can't use todayISODate(): on Vercel
+ * the process runs in UTC, so anything logged between 00:00 and 07:00 WIB would land on the
+ * previous day. 'en-CA' formats as YYYY-MM-DD.
+ */
+export function todayISODateJakarta(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
+}
+
 export function formatDateLabel(isoDate: string): string {
   return new Date(isoDate + 'T12:00:00').toLocaleDateString('en-GB', {
     weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',

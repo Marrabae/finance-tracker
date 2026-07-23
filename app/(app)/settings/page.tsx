@@ -3,25 +3,28 @@ import { CategoryManager } from '@/components/settings/CategoryManager';
 import { AccountManager } from '@/components/settings/AccountManager';
 import { BudgetTargetsForm } from '@/components/settings/BudgetTargetsForm';
 import { FundSettingsForm } from '@/components/settings/FundSettingsForm';
+import { ApiTokenManager } from '@/components/settings/ApiTokenManager';
 import { SignOutButton } from '@/components/settings/SignOutButton';
-import type { Account, Budget, Category, FundSettings } from '@/lib/types';
+import type { Account, ApiToken, Budget, Category, FundSettings } from '@/lib/types';
 
 export default async function SettingsPage() {
   const supabase = await createClient();
   const user = await getAuthedUser();
   const userId = user!.id;
 
-  const [catRes, accRes, budgetRes, fundRes] = await Promise.all([
+  const [catRes, accRes, budgetRes, fundRes, tokenRes] = await Promise.all([
     supabase.from('categories').select('*').eq('user_id', userId).order('created_at'),
     supabase.from('accounts').select('*').eq('user_id', userId).order('created_at'),
     supabase.from('budgets').select('*').eq('user_id', userId),
     supabase.from('fund_settings').select('*').eq('user_id', userId).maybeSingle(),
+    supabase.from('api_tokens').select('*').eq('user_id', userId).order('created_at'),
   ]);
 
   const categories = (catRes.data ?? []) as Category[];
   const accounts = (accRes.data ?? []) as Account[];
   const budgets = (budgetRes.data ?? []) as Budget[];
   const fund = fundRes.data as FundSettings | null;
+  const apiTokens = (tokenRes.data ?? []) as ApiToken[];
 
   const expenseCategories = categories.filter((c) => c.kind === 'expense');
   const incomeCategories = categories.filter((c) => c.kind === 'income');
@@ -48,6 +51,15 @@ export default async function SettingsPage() {
           starting_balance: fund?.starting_balance ?? 0,
           monthly_deposit: fund?.monthly_deposit ?? 0,
         }}
+      />
+      <ApiTokenManager
+        tokens={apiTokens.map((t) => ({
+          id: t.id,
+          name: t.name,
+          token_prefix: t.token_prefix,
+          created_at: t.created_at,
+          last_used_at: t.last_used_at,
+        }))}
       />
       <div className="bg-white border border-[#e6e9e7] rounded-2xl px-5 py-[18px] flex flex-col gap-3">
         <div className="text-sm font-semibold">Account</div>

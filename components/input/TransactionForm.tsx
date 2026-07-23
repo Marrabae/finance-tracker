@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { createTransaction, updateTransaction, type TransactionInput } from '@/actions/transactions';
+import { createTransaction, updateTransaction } from '@/actions/transactions';
+import type { TransactionInput } from '@/lib/transactions';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Chip } from '@/components/ui/Chip';
 import { AmountInput } from '@/components/ui/AmountInput';

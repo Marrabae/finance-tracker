@@ -63,8 +63,22 @@ export interface FundBalance {
   deposited_total: number;
 }
 
+export interface ApiToken {
+  id: string;
+  user_id: string;
+  name: string;
+  token_prefix: string;
+  created_at: string;
+  last_used_at: string | null;
+}
+
 /** Shape returned by an actions/* mutation, consumed by the calling client component for a toast. */
 export interface ActionResult {
   ok: boolean;
   message: string;
+}
+
+/** createApiToken also returns the plaintext token — the only time it is ever available. */
+export interface ApiTokenResult extends ActionResult {
+  token?: string;
 }
