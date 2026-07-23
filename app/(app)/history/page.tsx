@@ -33,9 +33,17 @@ export default async function HistoryPage({
   const categoryById = new Map(categories.map((c) => [c.id, c.name]));
   const accountById = new Map(accounts.map((a) => [a.id, a.name]));
 
+  // The same name can exist as both an expense and an income category, so tag the
+  // kind on the ones that would otherwise show up twice in the dropdown.
+  const nameCounts = new Map<string, number>();
+  for (const c of categories) nameCounts.set(c.name, (nameCounts.get(c.name) ?? 0) + 1);
+
   const categoryOptions = [
     { value: 'all', label: 'All categories' },
-    ...categories.map((c) => ({ value: c.id, label: c.name })),
+    ...categories.map((c) => ({
+      value: c.id,
+      label: (nameCounts.get(c.name) ?? 0) > 1 ? `${c.name} (${c.kind})` : c.name,
+    })),
   ];
   const accountOptions = [
     { value: 'all', label: 'All accounts' },
